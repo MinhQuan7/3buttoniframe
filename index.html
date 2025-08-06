@@ -5,7 +5,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
-    
+
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -688,8 +688,8 @@
       // Button states - track locally
       let buttonStates = [false, false, false];
 
-      // E-Ra data mapping - map button index to E-Ra data key
-      let dataMapping = {
+      // E-Ra realtime configs - map button index to realtime config
+      let realtimeConfigs = {
         0: null, // CB Tổng
         1: null, // CB 1
         2: null, // CB 2
@@ -716,14 +716,14 @@
             }
           }
 
-          // Extract data mapping from configuration
-          if (configuration.data) {
-            Object.keys(configuration.data).forEach((key, index) => {
+          // Extract realtime configs from configuration
+          if (configuration.realtime_configs) {
+            configuration.realtime_configs.forEach((config, index) => {
               if (index < 3) {
-                // Only map first 3 data points to our 3 buttons
-                dataMapping[index] = key;
+                // Only map first 3 realtime configs to our 3 buttons
+                realtimeConfigs[index] = config;
                 console.log(
-                  `Data mapping: Button ${index} -> E-Ra key "${key}"`
+                  `Realtime config: Button ${index} -> Config ID "${config.id}"`
                 );
               }
             });
@@ -738,6 +738,10 @@
               .getElementById(`container-${i}`)
               .classList.remove("no-connection");
           }
+
+          // Request initial data sync after configuration
+          console.log("Requesting initial data sync...");
+          eraWidget.requestDataSync();
         },
 
         onValues: (values) => {
@@ -747,13 +751,13 @@
           if (values && typeof values === "object") {
             let hasDataUpdates = false;
 
-            Object.keys(dataMapping).forEach((buttonIndex) => {
-              const dataKey = dataMapping[buttonIndex];
-              if (dataKey && values.hasOwnProperty(dataKey)) {
-                const serverValue = values[dataKey];
+            Object.keys(realtimeConfigs).forEach((buttonIndex) => {
+              const config = realtimeConfigs[buttonIndex];
+              if (config && values[config.id]) {
+                const serverValue = values[config.id].value;
                 const isOn = Boolean(serverValue && serverValue !== 0);
                 console.log(
-                  `Button ${buttonIndex}: Server value=${serverValue}, isOn=${isOn}`
+                  `Button ${buttonIndex}: Config ID=${config.id}, Server value=${serverValue}, isOn=${isOn}`
                 );
 
                 // Update button state if different from local state
@@ -772,6 +776,34 @@
                 "Initial data synchronization completed via onValues"
               );
             }
+          }
+        },
+
+        // Add onDataSync callback to handle periodic data updates
+        onDataSync: (values) => {
+          console.log("E-Ra data sync received:", values);
+
+          // Process the same way as onValues
+          if (values && typeof values === "object") {
+            Object.keys(realtimeConfigs).forEach((buttonIndex) => {
+              const config = realtimeConfigs[buttonIndex];
+              if (config && values[config.id]) {
+                const serverValue = values[config.id].value;
+                const isOn = Boolean(serverValue && serverValue !== 0);
+                console.log(
+                  `Data sync - Button ${buttonIndex}: Config ID=${config.id}, Server value=${serverValue}, isOn=${isOn}`
+                );
+
+                // Always update if different from local state
+                if (buttonStates[buttonIndex] !== isOn) {
+                  console.log(
+                    `Updating button ${buttonIndex} from ${buttonStates[buttonIndex]} to ${isOn}`
+                  );
+                  buttonStates[buttonIndex] = isOn;
+                  updateButtonUI(parseInt(buttonIndex), isOn);
+                }
+              }
+            });
           }
         },
       });
@@ -914,6 +946,14 @@
 
           // Update UI immediately for better UX
           updateButtonState(buttonIndex, isOn);
+
+          // Request data sync after action to confirm state change
+          setTimeout(() => {
+            if (isConfigured) {
+              console.log("Requesting data sync after action...");
+              eraWidget.requestDataSync();
+            }
+          }, 500); // Wait 500ms then sync
         } else {
           console.warn(`No action config found for index ${actionIndex}`);
           // Still update UI locally even if no server action
@@ -975,6 +1015,14 @@
         console.log(
           "DOM loaded - waiting for E-Ra configuration and data via onValues..."
         );
+
+        // Set up periodic data sync to ensure bi-directional communication
+        setInterval(() => {
+          if (isConfigured) {
+            console.log("Requesting periodic data sync...");
+            eraWidget.requestDataSync();
+          }
+        }, 2000); // Sync every 2 seconds
 
         // Add timeout fallback if no data received after configuration
         setTimeout(() => {
