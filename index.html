@@ -1,179 +1,997 @@
 <html>
-<head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <script src="https://www.unpkg.com/@eohjsc/era-widget@1.1.3/src/index.js"></script>
     <style>
-        :root {
-            --bg: #1a1a1a;
-            --glass: rgba(255, 255, 255, 0.05);
-            --accent: #00ff88;
-            --red: #ff4444;
-            --transition: all 0.3s ease;
-        }
+      :root {
+        --green: #10b981;
+        --green-light: #d1fae5;
+        --green-dark: #065f46;
+        --red: #ef4444;
+        --red-light: #fee2e2;
+        --red-dark: #991b1b;
+        --white: #ffffff;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --border-radius: 12px;
+        --border-radius-lg: 16px;
+        --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
 
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      html {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--gray-50) 0%,
+          var(--gray-100) 100%
+        );
+        padding: 16px 12px;
+        min-height: 100vh;
+        min-height: 100dvh; /* Dynamic viewport height for mobile */
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      .btn-container {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        padding: 20px 16px;
+        text-align: center;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--gray-200);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        height: fit-content;
+      }
+
+      .btn-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(
+          90deg,
+          var(--green) 0%,
+          var(--green-light) 100%
+        );
+        opacity: 0;
+        transition: var(--transition);
+      }
+
+      .btn-container:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .btn-container:hover::before {
+        opacity: 1;
+      }
+
+      .btn-container.no-connection {
+        border-color: var(--red);
+        box-shadow: 0 0 0 3px var(--red-light);
+      }
+
+      .btn-container.no-connection::before {
+        background: var(--red);
+        opacity: 1;
+      }
+
+      .device-label {
+        font-size: 14px;
+        color: var(--gray-700);
+        margin-bottom: 16px;
+        font-weight: 600;
+        letter-spacing: -0.025em;
+      }
+
+      .status {
+        width: 100%;
+        height: 44px;
+        border-radius: var(--border-radius);
+        margin: 0 auto 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--white);
+        transition: var(--transition);
+        background: linear-gradient(
+          135deg,
+          var(--red) 0%,
+          var(--red-dark) 100%
+        );
+        cursor: pointer;
+        box-shadow: var(--shadow-md);
+        position: relative;
+        overflow: hidden;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .status::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      .status:hover::before {
+        left: 100%;
+      }
+
+      .status:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .status:active {
+        transform: translateY(0);
+      }
+
+      .status.active {
+        background: linear-gradient(
+          135deg,
+          var(--green) 0%,
+          var(--green-dark) 100%
+        );
+      }
+
+      .control-button {
+        width: 100%;
+        padding: 10px 16px;
+        border: none;
+        border-radius: var(--border-radius);
+        background: var(--gray-100);
+        color: var(--gray-700);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        margin-bottom: 8px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+        height: 44px;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .control-button:hover {
+        background: var(--gray-200);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .control-button:active {
+        transform: translateY(0);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .control-button.active {
+        background: linear-gradient(
+          135deg,
+          var(--green) 0%,
+          var(--green-dark) 100%
+        );
+        color: var(--white);
+        border-color: var(--green);
+      }
+
+      .mode-container {
+        margin-top: 8px;
+        flex-grow: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+      }
+
+      .mode-label {
+        font-size: 12px;
+        color: var(--gray-600);
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+
+      .mode-display {
+        width: 100%;
+        height: 40px;
+        border-radius: var(--border-radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--green-light);
+        border: 2px solid var(--green);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--green-dark);
+        box-shadow: var(--shadow-sm);
+      }
+
+      button {
+        display: none;
+      }
+
+      /* Confirm Popup Styles */
+      .confirm-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
+        animation: fadeIn 0.2s ease-out;
+        padding: 16px;
+      }
+
+      .confirm-overlay.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .confirm-popup {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        padding: 24px 20px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--gray-200);
+        max-width: 360px;
+        width: 100%;
+        text-align: center;
+        transform: scale(0.9);
+        animation: popupIn 0.2s ease-out forwards;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .confirm-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--gray-800);
+        margin-bottom: 12px;
+        line-height: 1.3;
+      }
+
+      .confirm-message {
+        font-size: 15px;
+        color: var(--gray-600);
+        margin-bottom: 20px;
+        line-height: 1.4;
+      }
+
+      .confirm-device {
+        font-weight: 600;
+        color: var(--gray-800);
+      }
+
+      .confirm-action {
+        font-weight: 600;
+        color: var(--green);
+      }
+
+      .confirm-action.off {
+        color: var(--red);
+      }
+
+      .confirm-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .confirm-btn {
+        display: flex !important;
+        padding: 12px 20px;
+        border: none;
+        border-radius: var(--border-radius);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        min-width: 90px;
+        justify-content: center;
+        align-items: center;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        flex: 1;
+        min-height: 44px;
+      }
+
+      .confirm-btn.cancel {
+        background: var(--gray-100);
+        color: var(--gray-700);
+        border: 1px solid var(--gray-200);
+      }
+
+      .confirm-btn.cancel:hover {
+        background: var(--gray-200);
+      }
+
+      .confirm-btn.confirm {
+        background: linear-gradient(
+          135deg,
+          var(--green) 0%,
+          var(--green-dark) 100%
+        );
+        color: var(--white);
+        border: 1px solid var(--green);
+      }
+
+      .confirm-btn.confirm.off {
+        background: linear-gradient(
+          135deg,
+          var(--red) 0%,
+          var(--red-dark) 100%
+        );
+        border-color: var(--red);
+      }
+
+      .confirm-btn.confirm:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes popupIn {
+        from {
+          transform: scale(0.9);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      @media (max-width: 768px) {
         body {
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(45deg, #0f0f0f, #2a2a2a);
-            font-family: 'Segoe UI', sans-serif;
+          padding: 12px 8px;
         }
 
         .container {
-            display: grid;
-            gap: 2rem;
-            grid-template-columns: repeat(3, 1fr);
-            padding: 2rem;
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+          grid-template-columns: 1fr;
+          gap: 12px;
         }
 
         .btn-container {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
+          padding: 16px 12px;
+        }
+
+        .confirm-popup {
+          padding: 20px 16px;
+          max-width: 300px;
+          margin: 0 8px;
+        }
+
+        .confirm-title {
+          font-size: 16px;
+        }
+
+        .confirm-message {
+          font-size: 14px;
+          margin-bottom: 16px;
+        }
+
+        .confirm-btn {
+          padding: 10px 16px;
+          font-size: 13px;
+          min-width: 80px;
+          min-height: 40px;
         }
 
         .status {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            font-weight: bold;
-            transition: var(--transition);
-            background: var(--red);
-            box-shadow: 0 4px 15px rgba(255, 68, 68, 0.3);
-            color: white;
-            position: relative;
-            overflow: hidden;
+          height: 40px;
+          font-size: 15px;
         }
 
-        .status.active {
-            background: var(--accent);
-            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+        .control-button {
+          height: 40px;
+          font-size: 13px;
+          padding: 8px 12px;
+          margin-bottom: 6px;
         }
 
-        .status i {
-            position: absolute;
-            font-size: 2rem;
-            opacity: 0;
-            transition: var(--transition);
+        .mode-display {
+          height: 36px;
+          font-size: 13px;
         }
 
-        .status.active .on-icon,
-        .status:not(.active) .off-icon {
-            opacity: 1;
+        .device-label {
+          font-size: 13px;
+          margin-bottom: 12px;
         }
 
-        button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 12px;
-            background: linear-gradient(45deg, var(--glass), rgba(255,255,255,0.1));
-            color: white;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: var(--transition);
-            min-width: 120px;
-            min-height: 44px;
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.1);
+        .mode-label {
+          font-size: 11px;
+          margin-bottom: 6px;
+        }
+      }
+
+      /* Extra small mobile devices */
+      @media (max-width: 480px) {
+        body {
+          padding: 8px 4px;
         }
 
-        button:hover {
-            background: linear-gradient(45deg, var(--accent), rgba(0,255,136,0.2));
-            transform: translateY(-2px);
+        .container {
+          gap: 8px;
         }
 
-        button:active {
-            transform: translateY(0);
+        .btn-container {
+          padding: 12px 8px;
+          border-radius: 12px;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
+        .confirm-popup {
+          padding: 16px 12px;
+          max-width: 280px;
+          border-radius: 12px;
         }
+
+        .confirm-title {
+          font-size: 15px;
+          margin-bottom: 8px;
+        }
+
+        .confirm-message {
+          font-size: 13px;
+          margin-bottom: 12px;
+        }
+
+        .confirm-buttons {
+          gap: 8px;
+        }
+
+        .confirm-btn {
+          padding: 8px 12px;
+          font-size: 12px;
+          min-height: 36px;
+          border-radius: 8px;
+        }
+
+        .status {
+          height: 36px;
+          font-size: 14px;
+          margin-bottom: 12px;
+          border-radius: 8px;
+        }
+
+        .control-button {
+          height: 36px;
+          font-size: 12px;
+          margin-bottom: 4px;
+          border-radius: 8px;
+        }
+
+        .mode-display {
+          height: 32px;
+          font-size: 12px;
+          border-radius: 8px;
+        }
+
+        .device-label {
+          font-size: 12px;
+          margin-bottom: 8px;
+        }
+
+        .mode-label {
+          font-size: 10px;
+          margin-bottom: 4px;
+        }
+      }
+
+      /* Landscape mobile orientation */
+      @media (max-width: 768px) and (orientation: landscape) {
+        body {
+          padding: 8px 12px;
+        }
+
+        .container {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 8px;
+        }
+
+        .btn-container {
+          min-height: 180px;
+          padding: 12px 8px;
+        }
+
+        .confirm-popup {
+          max-height: 80vh;
+        }
+      }
+
+      /* Very small screens */
+      @media (max-width: 320px) {
+        .confirm-popup {
+          max-width: 260px;
+          padding: 12px 8px;
+        }
+
+        .confirm-btn {
+          font-size: 11px;
+          min-height: 32px;
+          padding: 6px 10px;
+        }
+
+        .btn-container {
+          padding: 10px 6px;
+        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="btn-container">
-            <div class="status" id="status-0">
-                <i class="off-icon material-icons">power_off</i>
-                <i class="on-icon material-icons">power</i>
-            </div>
-            <button onclick="controlButton(0, !status0)" id="button-0">OFF</button>
+      <!-- CB Tong -->
+      <div class="btn-container" id="container-0">
+        <div class="device-label">CB Tổng</div>
+        <div class="status" id="status-0" onclick="toggleButton(0)">Off</div>
+        <button
+          class="control-button"
+          id="control-button-0"
+          onclick="toggleButton(0)"
+        >
+          Turn OFF
+        </button>
+        <div class="mode-container">
+          <div class="mode-label">Mode CB Tổng</div>
+          <div class="mode-display">Auto</div>
         </div>
-        <div class="btn-container">
-            <div class="status" id="status-1">
-                <i class="off-icon material-icons">power_off</i>
-                <i class="on-icon material-icons">power</i>
-            </div>
-            <button onclick="controlButton(1, !status1)" id="button-1">OFF</button>
+        <button onclick="toggleButton(0)" id="button-0" style="display: none">
+          OFF
+        </button>
+      </div>
+
+      <!-- CB 1 -->
+      <div class="btn-container" id="container-1">
+        <div class="device-label">CB 1</div>
+        <div class="status" id="status-1" onclick="toggleButton(1)">Off</div>
+        <button
+          class="control-button"
+          id="control-button-1"
+          onclick="toggleButton(1)"
+        >
+          Turn OFF
+        </button>
+        <div class="mode-container">
+          <div class="mode-label">Mode CB 1</div>
+          <div class="mode-display">Auto</div>
         </div>
-        <div class="btn-container">
-            <div class="status" id="status-2">
-                <i class="off-icon material-icons">power_off</i>
-                <i class="on-icon material-icons">power</i>
-            </div>
-            <button onclick="controlButton(2, !status2)" id="button-2">OFF</button>
+        <button onclick="toggleButton(1)" id="button-1" style="display: none">
+          OFF
+        </button>
+      </div>
+
+      <!-- CB 2 -->
+      <div class="btn-container" id="container-2">
+        <div class="device-label">CB 2</div>
+        <div class="status" id="status-2" onclick="toggleButton(2)">Off</div>
+        <button
+          class="control-button"
+          id="control-button-2"
+          onclick="toggleButton(2)"
+        >
+          Turn OFF
+        </button>
+        <div class="mode-container">
+          <div class="mode-label">Mode CB 2</div>
+          <div class="mode-display">Auto</div>
         </div>
+        <button onclick="toggleButton(2)" id="button-2" style="display: none">
+          OFF
+        </button>
+      </div>
+    </div>
+
+    <!-- Confirm Popup -->
+    <div class="confirm-overlay" id="confirmOverlay">
+      <div class="confirm-popup">
+        <div class="confirm-title">Xác nhận thao tác</div>
+        <div class="confirm-message">
+          Bạn có chắc chắn muốn
+          <span class="confirm-action" id="confirmAction">bật</span>
+          <span class="confirm-device" id="confirmDevice">CB Tổng</span> không?
+        </div>
+        <div class="confirm-buttons">
+          <button class="confirm-btn cancel" onclick="cancelConfirm()">
+            Hủy
+          </button>
+          <button
+            class="confirm-btn confirm"
+            id="confirmButton"
+            onclick="executeAction()"
+          >
+            Xác nhận
+          </button>
+        </div>
+      </div>
     </div>
 
     <script>
-        const eraWidget = new EraWidget();
-        let realtimeConfigs = new Array(1).fill(null);
-        let actionConfigs = new Array(6).fill(null);
-        let isConfigured = false;
-        let status0 = false, status1 = false, status2 = false;
+      const eraWidget = new EraWidget();
+      let actionConfigs = new Array(6).fill(null); // 2 actions per button (ON/OFF) × 3 buttons
+      let isConfigured = false;
+      let initialDataLoaded = false;
 
-        eraWidget.init({
-            onConfiguration: (configuration) => {
-                if (configuration.realtime_configs?.[0]) realtimeConfigs[0] = configuration.realtime_configs[0];
-                for (let i = 0; i < 6; i++) {
-                    if (configuration.actions?.[i]) actionConfigs[i] = configuration.actions[i];
+      // Button states - track locally
+      let buttonStates = [false, false, false];
+
+      // E-Ra data mapping - map button index to E-Ra data key
+      let dataMapping = {
+        0: null, // CB Tổng
+        1: null, // CB 1
+        2: null, // CB 2
+      };
+
+      // Pending action for confirm popup
+      let pendingAction = {
+        buttonIndex: null,
+        isOn: null,
+      };
+
+      // Device names for confirm popup
+      const deviceNames = ["CB Tổng", "CB 1", "CB 2"];
+
+      eraWidget.init({
+        onConfiguration: (configuration) => {
+          console.log("E-Ra Configuration received:", configuration);
+
+          // Configure action configs - 2 actions per button (ON/OFF)
+          for (let i = 0; i < 6; i++) {
+            if (configuration.actions?.[i]) {
+              actionConfigs[i] = configuration.actions[i];
+              console.log(`Action config ${i}:`, actionConfigs[i]);
+            }
+          }
+
+          // Extract data mapping from configuration
+          if (configuration.data) {
+            Object.keys(configuration.data).forEach((key, index) => {
+              if (index < 3) {
+                // Only map first 3 data points to our 3 buttons
+                dataMapping[index] = key;
+                console.log(
+                  `Data mapping: Button ${index} -> E-Ra key "${key}"`
+                );
+              }
+            });
+          }
+
+          isConfigured = true;
+          console.log("Widget configured successfully");
+
+          // Remove no-connection indicator when configured
+          for (let i = 0; i < 3; i++) {
+            document
+              .getElementById(`container-${i}`)
+              .classList.remove("no-connection");
+          }
+        },
+
+        onValues: (values) => {
+          console.log("E-Ra values received:", values);
+
+          // Update button states based on received values
+          if (values && typeof values === "object") {
+            let hasDataUpdates = false;
+
+            Object.keys(dataMapping).forEach((buttonIndex) => {
+              const dataKey = dataMapping[buttonIndex];
+              if (dataKey && values.hasOwnProperty(dataKey)) {
+                const serverValue = values[dataKey];
+                const isOn = Boolean(serverValue && serverValue !== 0);
+                console.log(
+                  `Button ${buttonIndex}: Server value=${serverValue}, isOn=${isOn}`
+                );
+
+                // Update button state if different from local state
+                if (buttonStates[buttonIndex] !== isOn) {
+                  buttonStates[buttonIndex] = isOn;
+                  updateButtonUI(parseInt(buttonIndex), isOn);
+                  hasDataUpdates = true;
                 }
-                isConfigured = true;
-            },
-            onValues: (values) => {
-                realtimeConfigs.forEach((config, index) => {
-                    if (config && values[config.id]) {
-                        document.getElementById(`status-${index}`).classList.toggle('active', values[config.id].value);
-                    }
-                });
-            }
-        });
+              }
+            });
 
-        function controlButton(buttonIndex, isOn) {
-            if (!isConfigured) return;
-            
-            const actionIndex = buttonIndex * 2 + (isOn ? 0 : 1);
-            if (actionConfigs[actionIndex]) {
-                eraWidget.triggerAction(actionConfigs[actionIndex].action, null, { value: isOn ? 1 : 0 });
-                document.getElementById(`status-${buttonIndex}`).classList.toggle('active', isOn);
-                document.getElementById(`button-${buttonIndex}`).textContent = isOn ? 'ON' : 'OFF';
-                window[`status${buttonIndex}`] = isOn;
+            // Mark initial data as loaded on first data reception
+            if (!initialDataLoaded && hasDataUpdates) {
+              initialDataLoaded = true;
+              console.log(
+                "Initial data synchronization completed via onValues"
+              );
             }
+          }
+        },
+      });
+
+      function updateButtonUI(buttonIndex, isOn) {
+        console.log(`updateButtonUI: buttonIndex=${buttonIndex}, isOn=${isOn}`);
+
+        // Update all UI elements
+        const statusElement = document.getElementById(`status-${buttonIndex}`);
+        const controlButtonElement = document.getElementById(
+          `control-button-${buttonIndex}`
+        );
+        const hiddenButtonElement = document.getElementById(
+          `button-${buttonIndex}`
+        );
+
+        if (isOn) {
+          // ON state
+          statusElement.classList.add("active");
+          statusElement.textContent = "On";
+          controlButtonElement.textContent = "Turn ON";
+          controlButtonElement.classList.add("active");
+          hiddenButtonElement.textContent = "ON";
+        } else {
+          // OFF state
+          statusElement.classList.remove("active");
+          statusElement.textContent = "Off";
+          controlButtonElement.textContent = "Turn OFF";
+          controlButtonElement.classList.remove("active");
+          hiddenButtonElement.textContent = "OFF";
         }
 
-        // Touch event handling
-        document.querySelectorAll('button').forEach(btn => {
-            btn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                btn.click();
+        // Update global status variables for backward compatibility
+        window[`status${buttonIndex}`] = isOn;
+      }
+
+      function updateButtonState(buttonIndex, isOn) {
+        console.log(
+          `updateButtonState: buttonIndex=${buttonIndex}, isOn=${isOn}`
+        );
+
+        // Update local state
+        buttonStates[buttonIndex] = isOn;
+
+        // Update UI
+        updateButtonUI(buttonIndex, isOn);
+      }
+
+      function toggleButton(buttonIndex) {
+        const currentState = buttonStates[buttonIndex];
+        const newState = !currentState;
+
+        // Show confirm popup instead of direct action
+        showConfirmPopup(buttonIndex, newState);
+      }
+
+      function showConfirmPopup(buttonIndex, isOn) {
+        // Store pending action
+        pendingAction.buttonIndex = buttonIndex;
+        pendingAction.isOn = isOn;
+
+        // Update popup content
+        const confirmAction = document.getElementById("confirmAction");
+        const confirmDevice = document.getElementById("confirmDevice");
+        const confirmButton = document.getElementById("confirmButton");
+
+        // Set action text and styling
+        confirmAction.textContent = isOn ? "bật" : "tắt";
+        confirmAction.className = isOn
+          ? "confirm-action"
+          : "confirm-action off";
+
+        // Set device name
+        confirmDevice.textContent = deviceNames[buttonIndex];
+
+        // Set confirm button styling
+        confirmButton.className = isOn
+          ? "confirm-btn confirm"
+          : "confirm-btn confirm off";
+        confirmButton.textContent = "Xác nhận";
+
+        // Show popup
+        const overlay = document.getElementById("confirmOverlay");
+        overlay.classList.add("show");
+
+        // Prevent body scroll
+        document.body.style.overflow = "hidden";
+      }
+
+      function cancelConfirm() {
+        // Hide popup
+        const overlay = document.getElementById("confirmOverlay");
+        overlay.classList.remove("show");
+
+        // Restore body scroll
+        document.body.style.overflow = "";
+
+        // Clear pending action
+        pendingAction.buttonIndex = null;
+        pendingAction.isOn = null;
+      }
+
+      function executeAction() {
+        // Execute the pending action
+        if (pendingAction.buttonIndex !== null && pendingAction.isOn !== null) {
+          controlButton(pendingAction.buttonIndex, pendingAction.isOn);
+        }
+
+        // Hide popup
+        cancelConfirm();
+      }
+
+      function controlButton(buttonIndex, isOn) {
+        console.log(
+          `controlButton called: buttonIndex=${buttonIndex}, isOn=${isOn}`
+        );
+
+        if (!isConfigured) {
+          console.warn("Configuration pending - widget not ready");
+          // Show all containers as no-connection
+          for (let i = 0; i < 3; i++) {
+            document
+              .getElementById(`container-${i}`)
+              .classList.add("no-connection");
+          }
+          return;
+        }
+
+        // Calculate action index: buttonIndex * 2 + (ON=0, OFF=1)
+        const actionIndex = buttonIndex * 2 + (isOn ? 0 : 1);
+        console.log(`Action index: ${actionIndex}`);
+
+        if (actionConfigs[actionIndex]) {
+          console.log("Triggering E-Ra action:", actionConfigs[actionIndex]);
+
+          // Use E-Ra standard format
+          eraWidget.triggerAction(actionConfigs[actionIndex].action, null, {
+            value: isOn ? 1 : 0,
+          });
+
+          // Update UI immediately for better UX
+          updateButtonState(buttonIndex, isOn);
+        } else {
+          console.warn(`No action config found for index ${actionIndex}`);
+          // Still update UI locally even if no server action
+          updateButtonState(buttonIndex, isOn);
+        }
+      }
+
+      // Touch event handling for mobile devices
+      document.addEventListener("DOMContentLoaded", function () {
+        document
+          .querySelectorAll(".status, .control-button")
+          .forEach((element) => {
+            let buttonIndex;
+
+            // Get button index from element ID
+            if (element.classList.contains("control-button")) {
+              buttonIndex = parseInt(element.id.split("-")[2]);
+            } else if (element.classList.contains("status")) {
+              buttonIndex = parseInt(element.id.split("-")[1]);
+            }
+
+            // Add touch event
+            element.addEventListener("touchend", (e) => {
+              e.preventDefault();
+              toggleButton(buttonIndex);
             });
+          });
+
+        // Close popup when clicking outside
+        document
+          .getElementById("confirmOverlay")
+          .addEventListener("click", function (e) {
+            if (e.target === this) {
+              cancelConfirm();
+            }
+          });
+
+        // Handle Escape key to close popup
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            cancelConfirm();
+          }
         });
+      });
+
+      // Initialize all buttons with loading state, wait for E-Ra data via onValues
+      document.addEventListener("DOMContentLoaded", function () {
+        // Show loading state initially
+        for (let i = 0; i < 3; i++) {
+          // Show as no-connection until configured and data received
+          document
+            .getElementById(`container-${i}`)
+            .classList.add("no-connection");
+
+          // Set initial UI state (will be updated when onValues receives data)
+          updateButtonUI(i, false);
+        }
+
+        console.log(
+          "DOM loaded - waiting for E-Ra configuration and data via onValues..."
+        );
+
+        // Add timeout fallback if no data received after configuration
+        setTimeout(() => {
+          if (isConfigured && !initialDataLoaded) {
+            console.warn(
+              "No data received via onValues - keeping default OFF states"
+            );
+            initialDataLoaded = true;
+            // Remove no-connection indicators
+            for (let i = 0; i < 3; i++) {
+              document
+                .getElementById(`container-${i}`)
+                .classList.remove("no-connection");
+            }
+          }
+        }, 10000); // 10 second timeout for data reception
+      });
     </script>
-</body>
+  </body>
 </html>
